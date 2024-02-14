@@ -1,0 +1,235 @@
+
+
+-- Amazon EventBridge is a serverless service that uses events to connect application components together, making it easier for developers to build scalable event-driven applications.
+
+-- Event Bridge is an Event Bus that helps in integrating different AWS Services , and custom applications and SAAS Applications 
+
+-- Earlier we have Cloud watch events , the only negative point is that , it did not support SAAS applications and custom applications outside from the AWS 
+
+-- EventBridge was build for the same purpose , u can create effortless event-driven architectures
+
+Eg 1 : u want to receive SNS notification every time production EC2 instance are terminated , this will be done by EventBridge
+
+Eg 2 : automated deployment using code pipelines at 11PM everyday
+
+Eg 3 : if a premier user deactivates himself from ur product , u want to :
+
+- Send and email for feedback 
+- Schedule Customer Representative call
+- Send customised offers for that use 
+
+
+-- these all things will done by the event Bridge and u can schedule the events also 
+
+-- It is fully managed service 
+
+-- pay what u use model 
+
+
+Different Parts in EventBridge:
+
+
+Working flow -----
+
+
+Event Producer --> Event --> Amazon EventBridge event Bus --> Rule ---AWS Lambda , AWS Kinesis Data Firehose, Amazon Simple Notification Service
+
+
+--  Event producer : AWS Service / Custom applications / Third Party SaaS providers,
+
+--  From the producers the event will generated , this will transform to the bus and it move to rules , in rules there are multiple rules and this rules will send to multiple targets 
+
+-- A single rule may have multiple targets and max target is 5 ,all targets will process in the event in parallel
+
+
+Important terms in EventBridge :
+
+1 Event  : An Event indicated a change in an environment 
+
+2 Rule   : A rule matches incoming events and routes them to targets for processing  
+
+3 Target : target application of ur rule. A target process events 
+
+Targets can include ec2 , lambda functions , kinesis streams , Ecs tasks,  , the target receive events in JSON format 
+
+4 Event Bus : An event bus receives events. When u create a rule , u associate it with a specific event bus and rules is matched only to events received by that event bus 
+
+- rule can not be create standAlone , it should have it's parent as EventBus
+
+Components of EventBridge :
+
+1 EventBridge Rule : A rule matches incoming events and sends them to targets for processing.
+
+2 EventBridge Pipes : A pipe connects an event source to a target with optional filtering and enrichment.
+
+3 EventBridge Schedule : A schedule invokes a target one-time or at regular intervals defined by a cron or rate expression.
+
+4 EventBridge Schema registry : Schema registries collect and organize schemas.
+
+
+EventBus : Usecases
+
+if a premier user deactivates himself from ur product , u want to :
+
+- Send and email for feedback 
+- Schedule Customer Representative call
+- Send customised offers for that use 
+
+
+In the above example , the working flow will be like 
+
+
+User deletes his subscription --> custom event is trigged --> rights custom event would be pass into the EventBus --> rule matching --> then it reaches to the targets , once the rule is matched  here then it sends to targets --> 1 the targets are Feedback service 2 Schedule call service 3 offers service 
+
+
+
+
+=======================================practicals=======================
+
+
+Example 1 
+
+1  Schedule AWS Lambda Functions Using EventBridge
+
+
+-- lambda scheduling use cases 
+
+- Automated backups at EOD of ur applications 
+
+- backend cleaning (including logs and temp files )
+
+- consolidated reports after business hours , so lambda can trigger  Athena queries and can run any database queries and send to business stack holders through SNS 
+
+
+- to schedule events u have two options 
+
+1 to schedule  at fixed rate -- for every 1 minute 
+
+2 Cron job (10 * * * * )
+
+-- open console 
+
+-- open lambda --> python 3.9 --> create function 
+
+-- write python code to invoke lambda function
+
+import json
+from datetime import datetime
+
+def lambda_handler(event, context):
+    # TODO implement
+    currentTime = datetime.now()
+    print("Time at which Lambda invoked" + str(currentTime))
+
+
+-- give empty JSON to test {}
+
+-- now go to Amazon eventBridge in console 
+
+-- c.o create rule --> schedule --> continue to create rule --> schedule that run at regular intervals--> select 1 minute --> select lambda function --> create rule 
+
+-- u can check in CloudWatch logs , for invoking is there or not 
+
+--  the logs are generated 
+
+
+-- if u want to monitor ur invocations --> Metrics --> all Metrics --> query --> choose AWS/events --> Myrule name 
+
+- metric name = COUNT(invocation)
+
+- filter by = Rulename = rule name that u have created in lambda function to test the function 
+
+- choose number in right corner to see the no. of invocations 
+
+
+-------------------------------------------
+
+Example 2 : EventBridge with SNS 
+
+
+-- AS we know that EventBridge will use for 2 process 
+
+1 event-event process : when the event has occurred according to our rule then it will trigger to the targets 
+
+2 schedule process : do schedule 
+
+-- in the above example we have seen Schedule event
+
+-- now event to event 
+
+- for example the ec2 is stopped then it will send alert to the subscribers on SNS Topic 
+
+-- open SNS in console --> create one topic --> standard --> create topic --> open topic -->create subscription --> add protocol email or phone number 
+
+-- when ever the instance is getting stooped then I would like send an alert to all the subscribers 
+
+-- this is called event-event process 
+
+-- create one ec2 instance 
+
+-- create rule in event bridge --> name --> rule with an event pattern --> in event pattern = select ec2 --> select event type as u want --> in Target1 choose AWS Service = SNS topic select SNS topic --> create rule 
+
+-- do stop the instance 
+
+-- u will get notification once the instance is get stopped 
+
+
+--------------- now for schedule event 
+
+-- create another rule , that is based on the time to stop the instance 
+
+-- select schedule pattern option --> A schedule that runs at a regular rate, such as every 10 minutes. --> target = terminateinstanceAPI call --> u can also add another target to get notification 
+ 
+
+-- the instance will get terminated after the time that u have specified 
+
+
+-- this is simple basic example for schedule pattern 
+
+
+
+==========================done=============================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+                                       
+ 
